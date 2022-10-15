@@ -16,12 +16,14 @@ try:
         data_combined = data_photo.iloc[:, 2:][data_photo['FRAME-NUMBER'].isin(['0', '105', '120', '135', '15', '150'])].fillna(-1)
         data_combined['ANS_VALENCE'] = '0'
         data_combined['ANS_AROUSAL'] = '0'
+        data_combined['ANS_TIME'] = '0'
 
         for index, row in data_combined.iterrows():
             for index2, row2 in data_procedure.iterrows():
                 if float(row['IADS-ID']) == float(row2['IADS-ID']) and float(row['IAPS-ID']) == float(row2['IAPS-ID']):
                     data_combined.loc[index, 'ANS_VALENCE'] = row2['ANS-VALENCE']
                     data_combined.loc[index, 'ANS_AROUSAL'] = row2['ANS-AROUSAL']
+                    data_combined.loc[index, 'ANS_TIME'] = row2['ANS-TIME']
                     break
 
         data_combined = data_combined.iloc[:, 2:]
@@ -40,6 +42,8 @@ try:
     data_final = data_final[data_final['NEUTRAL'] >= 0]
     data_final = data_final[data_final['SADNESS'] >= 0]
     data_final = data_final[data_final['SURPRISE'] >= 0]
+    data_final = data_final[data_final['ANS_TIME'] >= 0]
+    data_final = data_final.iloc[:, :-1]
 
     print('Writing data to file dataset.csv')
     data_final.to_csv('dataset.csv', index=False)
