@@ -17,6 +17,7 @@ try:
         data_combined['ANS_VALENCE'] = '0'
         data_combined['ANS_AROUSAL'] = '0'
         data_combined['ANS_TIME'] = '0'
+        data_combined['COND'] = '0'
 
         for index, row in data_combined.iterrows():
             for index2, row2 in data_procedure.iterrows():
@@ -24,6 +25,7 @@ try:
                     data_combined.loc[index, 'ANS_VALENCE'] = row2['ANS-VALENCE']
                     data_combined.loc[index, 'ANS_AROUSAL'] = row2['ANS-AROUSAL']
                     data_combined.loc[index, 'ANS_TIME'] = row2['ANS-TIME']
+                    data_combined.loc[index, 'COND'] = row2['COND'][-1]
                     break
 
         data_combined = data_combined.iloc[:, 2:]
@@ -33,7 +35,23 @@ try:
         else:
             data_final = pd.concat([data_final, data_combined])
 
-    data_final = data_final.astype('float64')
+    data_final = data_final.astype(
+        {
+            'ANGER': 'float64',
+            'CONTEMPT': 'float64',
+            'DISGUST': 'float64',
+            'FEAR': 'float64',
+            'HAPPINESS': 'float64',
+            'NEUTRAL': 'float64',
+            'SADNESS': 'float64',
+            'SURPRISE': 'float64',
+            'ANS_TIME': 'float64',
+            'ANS_VALENCE': 'float64',
+            'ANS_AROUSAL': 'float64',
+            'COND': 'string'
+        }
+    )
+
     data_final = data_final[data_final['ANGER'] >= 0]
     data_final = data_final[data_final['CONTEMPT'] >= 0]
     data_final = data_final[data_final['DISGUST'] >= 0]
@@ -43,7 +61,8 @@ try:
     data_final = data_final[data_final['SADNESS'] >= 0]
     data_final = data_final[data_final['SURPRISE'] >= 0]
     data_final = data_final[data_final['ANS_TIME'] >= 0]
-    data_final = data_final.iloc[:, :-1]
+    data_final.drop(columns='ANS_TIME', inplace=True)
+    data_final = data_final[data_final['COND'] != 'n']
 
     print('Writing data to file dataset.csv')
     data_final.to_csv('dataset.csv', index=False)
