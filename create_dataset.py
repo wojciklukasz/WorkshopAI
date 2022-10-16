@@ -19,14 +19,33 @@ try:
         data_combined['ANS_TIME'] = '0'
         data_combined['COND'] = '0'
 
+        last_iads = -1
+        last_iaps = -1
+        last_valence = -1
+        last_arousal = -1
+        last_time = -1
+        last_cond = -1
+
         for index, row in data_combined.iterrows():
-            for index2, row2 in data_procedure.iterrows():
-                if float(row['IADS-ID']) == float(row2['IADS-ID']) and float(row['IAPS-ID']) == float(row2['IAPS-ID']):
-                    data_combined.loc[index, 'ANS_VALENCE'] = row2['ANS-VALENCE']
-                    data_combined.loc[index, 'ANS_AROUSAL'] = row2['ANS-AROUSAL']
-                    data_combined.loc[index, 'ANS_TIME'] = row2['ANS-TIME']
-                    data_combined.loc[index, 'COND'] = row2['COND'][-1]
-                    break
+            if float(row['IADS-ID']) == last_iads and float(row['IAPS-ID']) == last_iaps:
+                data_combined.loc[index, 'ANS_VALENCE'] = last_valence
+                data_combined.loc[index, 'ANS_AROUSAL'] = last_arousal
+                data_combined.loc[index, 'ANS_TIME'] = last_time
+                data_combined.loc[index, 'COND'] = last_cond
+            else:
+                for index2, row2 in data_procedure.iterrows():
+                    if float(row['IADS-ID']) == float(row2['IADS-ID']) and float(row['IAPS-ID']) == float(row2['IAPS-ID']):
+                        data_combined.loc[index, 'ANS_VALENCE'] = row2['ANS-VALENCE']
+                        data_combined.loc[index, 'ANS_AROUSAL'] = row2['ANS-AROUSAL']
+                        data_combined.loc[index, 'ANS_TIME'] = row2['ANS-TIME']
+                        data_combined.loc[index, 'COND'] = row2['COND'][-1]
+                        last_iads = float(row2['IADS-ID'])
+                        last_iaps = float(row2['IAPS-ID'])
+                        last_valence = row2['ANS-VALENCE']
+                        last_arousal = row2['ANS-AROUSAL']
+                        last_time = row2['ANS-TIME']
+                        last_cond = row2['COND'][-1]
+                        break
 
         data_combined = data_combined.iloc[:, 2:]
 
