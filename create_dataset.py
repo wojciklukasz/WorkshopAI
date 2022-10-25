@@ -4,27 +4,43 @@ import pandas as pd
 data_final = pd.DataFrame()
 
 try:
-    for file in os.listdir('BIRAFFE2-photo'):
-        subject = file[:6]
-        print(f'Processing data for {subject}')
+    data_metadata = pd.read_csv('BIRAFFE2-metadata.csv', delimiter=';', dtype='str')
 
-        data_photo = pd.read_csv(f'BIRAFFE2-photo/{subject}-Face.csv', delimiter=';', dtype='str')
-        data_procedure = pd.read_csv(f'BIRAFFE2-procedure/{subject}-Procedure.csv', delimiter=';', dtype='str')
+    for file in os.listdir('BIRAFFE2-photo'):
+        subject = file[3:6]
+        print(f'Processing data for subject {subject}')
+
+        data_photo = pd.read_csv(f'BIRAFFE2-photo/SUB{subject}-Face.csv', delimiter=';', dtype='str')
+        data_procedure = pd.read_csv(f'BIRAFFE2-procedure/SUB{subject}-Procedure.csv', delimiter=';', dtype='str')
         data_procedure = data_procedure[data_procedure['COND'].notna()]
         data_procedure.replace('None', '-1', inplace=True)
 
-        data_combined = data_photo.iloc[:, 2:][data_photo['FRAME-NUMBER'].isin(['0', '105', '120', '135', '15', '150'])].fillna(-1)
-        data_combined['ANS_VALENCE'] = '0'
-        data_combined['ANS_AROUSAL'] = '0'
+        data_combined = data_photo.iloc[:, 2:][data_photo['FRAME-NUMBER'].isin(
+            ['0', '105', '120', '135', '15', '150']
+        )].fillna(-1)
+
+        data_combined['OPENNESS'] = '0'
+        data_combined['CONSCIENTIOUSNESS'] = '0'
+        data_combined['NEUROTICISM'] = '0'
+        data_combined['AGREEABLENESS'] = '0'
+        data_combined['EXTRAVERSION'] = '0'
         data_combined['ANS_TIME'] = '0'
         data_combined['COND'] = '0'
+        data_combined['ANS_VALENCE'] = '0'
+        data_combined['ANS_AROUSAL'] = '0'
+
+        openness = data_metadata.loc[data_metadata['ID'] == subject]['OPENNESS'].values[0]
+        conscientiousness = data_metadata.loc[data_metadata['ID'] == subject]['CONSCIENTIOUSNESS'].values[0]
+        neuroticism = data_metadata.loc[data_metadata['ID'] == subject]['NEUROTICISM'].values[0]
+        agreeableness = data_metadata.loc[data_metadata['ID'] == subject]['AGREEABLENESS'].values[0]
+        extraversion = data_metadata.loc[data_metadata['ID'] == subject]['EXTRAVERSION'].values[0]
 
         last_iads = -1
         last_iaps = -1
-        last_valence = -1
-        last_arousal = -1
         last_time = -1
         last_cond = -1
+        last_valence = -1
+        last_arousal = -1
 
         for index, row in data_combined.iterrows():
             if float(row['IADS-ID']) == last_iads and float(row['IAPS-ID']) == last_iaps:
@@ -54,6 +70,12 @@ try:
                 last_time = proc['ANS-TIME']
                 last_cond = proc['COND'][-1]
 
+            data_combined.loc[index, 'OPENNESS'] = openness
+            data_combined.loc[index, 'CONSCIENTIOUSNESS'] = conscientiousness
+            data_combined.loc[index, 'NEUROTICISM'] = neuroticism
+            data_combined.loc[index, 'AGREEABLENESS'] = agreeableness
+            data_combined.loc[index, 'EXTRAVERSION'] = extraversion
+
         data_combined = data_combined.iloc[:, 2:]
 
         if data_final.empty:
@@ -71,6 +93,11 @@ try:
             'NEUTRAL': 'float64',
             'SADNESS': 'float64',
             'SURPRISE': 'float64',
+            'OPENNESS': 'float64',
+            'CONSCIENTIOUSNESS': 'float64',
+            'NEUROTICISM': 'float64',
+            'AGREEABLENESS': 'float64',
+            'EXTRAVERSION': 'float64',
             'ANS_TIME': 'float64',
             'ANS_VALENCE': 'float64',
             'ANS_AROUSAL': 'float64',
@@ -98,4 +125,6 @@ except FileNotFoundError:
     print('\n    ------------------------ ERROR ------------------------')
     print('''    This script requires two folders in the same directory:
     BIRAFFE2-photo - containing face csv files
-    BIRAFFE2-procedure - containing procedure csv files''')
+    BIRAFFE2-procedure - containing procedure csv files
+    
+    It also requires file BIRAFFE2-metadata.csv in the directory''')
