@@ -33,19 +33,26 @@ try:
                 data_combined.loc[index, 'ANS_TIME'] = last_time
                 data_combined.loc[index, 'COND'] = last_cond
             else:
-                for index2, row2 in data_procedure.iterrows():
-                    if float(row['IADS-ID']) == float(row2['IADS-ID']) and float(row['IAPS-ID']) == float(row2['IAPS-ID']):
-                        data_combined.loc[index, 'ANS_VALENCE'] = row2['ANS-VALENCE']
-                        data_combined.loc[index, 'ANS_AROUSAL'] = row2['ANS-AROUSAL']
-                        data_combined.loc[index, 'ANS_TIME'] = row2['ANS-TIME']
-                        data_combined.loc[index, 'COND'] = row2['COND'][-1]
-                        last_iads = float(row2['IADS-ID'])
-                        last_iaps = float(row2['IAPS-ID'])
-                        last_valence = row2['ANS-VALENCE']
-                        last_arousal = row2['ANS-AROUSAL']
-                        last_time = row2['ANS-TIME']
-                        last_cond = row2['COND'][-1]
-                        break
+                proc = data_procedure.loc[(data_procedure['IADS-ID'].astype('float32') == float(row['IADS-ID']))
+                                          & (data_procedure['IAPS-ID'].astype('float32') == float(row['IAPS-ID']))]
+
+                if proc.empty:
+                    continue
+                if proc['COND'].values[0] == 'train':
+                    continue
+                if proc.size > 1:
+                    proc = proc.iloc[0]
+
+                data_combined.loc[index, 'ANS_VALENCE'] = proc['ANS-VALENCE']
+                data_combined.loc[index, 'ANS_AROUSAL'] = proc['ANS-AROUSAL']
+                data_combined.loc[index, 'ANS_TIME'] = proc['ANS-TIME']
+                data_combined.loc[index, 'COND'] = proc['COND'][-1]
+                last_iads = float(proc['IADS-ID'])
+                last_iaps = float(proc['IAPS-ID'])
+                last_valence = proc['ANS-VALENCE']
+                last_arousal = proc['ANS-AROUSAL']
+                last_time = proc['ANS-TIME']
+                last_cond = proc['COND'][-1]
 
         data_combined = data_combined.iloc[:, 2:]
 
@@ -80,8 +87,9 @@ try:
     data_final = data_final[data_final['SADNESS'] >= 0]
     data_final = data_final[data_final['SURPRISE'] >= 0]
     data_final = data_final[data_final['ANS_TIME'] >= 0]
+    data_final = data_final[data_final['ANS_AROUSAL'] > 0]
+    data_final = data_final[data_final['ANS_VALENCE'] > 0]
     data_final.drop(columns='ANS_TIME', inplace=True)
-    data_final = data_final[data_final['COND'] != 'n']
 
     print('Writing data to file dataset.csv')
     data_final.to_csv('dataset.csv', index=False)
