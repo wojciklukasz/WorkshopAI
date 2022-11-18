@@ -1,7 +1,13 @@
 /BIRAFFE2-procedure/
 /BIRAFFE2-photo/
 /venv/
-/dataset.csv
 /.idea
+/my_logs/
+/tuners/
+
 /.~lock.dataset.csv#
 /BIRAFFE2-metadata.csv
+/dataset.csv
+/dataset_full.csv
+/complete_models/dataset.csv
+/complete_models/dataset_full.csv
