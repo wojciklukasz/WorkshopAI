@@ -12,5 +12,4 @@
 /complete_models/dataset.csv
 /complete_models/dataset_full.csv
 /complete_models/my_logs/
-*.ods
 /.~lock.*
